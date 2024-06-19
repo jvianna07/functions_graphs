@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "fgraphs"
 version = "0.1.0"
-description = ""
+description = "Classification and identification of graphs of elementary mathematical functions"
 authors = ["Joaquim Viana"]
 readme = "README.md"
 

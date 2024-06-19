@@ -1,6 +1,6 @@
 # Function Graphs
 
-🚀 **Description**: Insert description.
+🚀 **Description**: Classification and identification of graphs of elementary mathematical functions.
 
 ## Table of Contents
 
