@@ -1,5 +1,6 @@
 from typing import Dict, List, Tuple
 from random import randint
+from math import sqrt
 
 import numpy as np
 import pandas as pd
@@ -126,3 +127,130 @@ def show_chord(cm: np.ndarray, labels: list[str]):
         rotate_names=True, fontsize=12, show=True
     )
 
+def process_binary_confusion_matrices(cm: np.ndarray, labels: List[str]) -> Dict[str, pd.DataFrame]:
+    binary_cms: Dict[str, pd.DataFrame] = {}
+
+    df_cm = pd.DataFrame(cm)
+
+    for i, label in enumerate(labels):
+
+        TP = df_cm.iloc[i, i]
+        FP = df_cm.iloc[:, i].sum().sum() - TP
+        FN = df_cm.iloc[i, :].sum().sum() - TP
+        TN = df_cm.sum().sum() - TP - FP - FN
+
+        # construct DataFrame for current label
+        binary_cms[label] = pd.DataFrame(
+            data={
+                "PREDICTED POSITIVE": [TP, FP],
+                "PREDICTED NEGATIVE": [FN, TN]
+            },
+            index=["ACTUAL POSITIVE", "ACTUAL NEGATIVE"]
+        )
+    return binary_cms
+
+def report(binary_cms: Dict[str, pd.DataFrame], labels: List[str]):
+
+    report_data: Dict = {
+        "label": [label for label in labels],
+        "P": [],
+        "N": [],
+        "TP": [],
+        "FN": [],
+        "FP": [],
+        "TN": [],
+        "TPR": [],
+        "TNR": [],
+        "PPV": [],
+        "NPV": [],
+        "FNR": [],
+        "FPR": [],
+        "FDR": [],
+        "FOR": [],
+        "PLR": [],
+        "NLR": [],
+        "PT": [],
+        "TS": [],
+        "PRE": [],
+        "ACC": [],
+        "BA": [],
+        "F1": [],
+        "MCC": [],
+        "FM": [],
+        "BM": [],
+        "MK": [],
+        "DOR": []
+    }
+
+    for i, label in enumerate(labels):
+
+        # extract binary confusion matrix for single label
+        binary_cm: pd.DataFrame = binary_cms[label]
+
+        # calculate metrics
+        P: int = binary_cm.loc["ACTUAL POSITIVE"].sum()
+        N: int = binary_cm.loc["ACTUAL NEGATIVE"].sum()
+        TP: int = binary_cm.loc["ACTUAL POSITIVE", "PREDICTED POSITIVE"]
+        FN: int = binary_cm.loc["ACTUAL POSITIVE", "PREDICTED NEGATIVE"]
+        FP: int = binary_cm.loc["ACTUAL NEGATIVE", "PREDICTED POSITIVE"]
+        TN: int = binary_cm.loc["ACTUAL NEGATIVE", "PREDICTED NEGATIVE"]
+        TPR: float = TP / P if P != 0 else np.nan
+        TNR: float = TN / N if N != 0 else np.nan
+        PPV: float = TP / (TP + FP) if (TP + FP) != 0 else np.nan
+        NPV: float = TN / (TN + FN) if (TN + FN) != 0 else np.nan
+        FNR: float = FN / P if P != 0 else np.nan
+        FPR: float = FP / N if N != 0 else np.nan
+        FDR: float = FP / (FP + TP) if (FP + TP) != 0 else np.nan
+        FOR: float = FN / (FN + TN) if (FN + TN) != 0 else np.nan
+        PLR: float = TPR / FPR if FPR != 0 else np.nan
+        NLR: float = FNR / TNR if TNR != 0 else np.nan
+        PT: float = sqrt(FPR) / (sqrt(TPR) + sqrt(FPR)) if (sqrt(TPR) + sqrt(FPR)) != 0 else np.nan
+        TS: float = TP / (TP + FN + FP) if (TP + FN + FP) != 0 else np.nan
+        PRE: float = P / (P + N) if (P + N) != 0 else np.nan
+        ACC: float = (TP + TN) / (P + N) if (P + N) != 0 else np.nan
+        BA: float = (TPR + TNR) / 2
+        F1: float = 2 * (PPV * TPR) / (PPV + TPR) if (PPV + TPR) != 0 else np.nan
+        MCC: float = sqrt(PPV * TPR * TNR * NPV) - sqrt(FDR * FNR * FPR * FOR)
+        FM: float = sqrt(PPV * TPR)
+        BM: float = TPR + TNR - 1
+        MK: float = PPV + NPV - 1
+        DOR: float = PLR / NLR if NLR != 0 else np.nan
+
+        # structure metrics in a dictionary
+        metrics_current_label = {
+            "P": P,
+            "N": N,
+            "TP": TP,
+            "FN": FN,
+            "FP": FP,
+            "TN": TN,
+            "TPR": TPR,
+            "TNR": TNR,
+            "PPV": PPV,
+            "NPV": NPV,
+            "FNR": FNR,
+            "FPR": FPR,
+            "FDR": FDR,
+            "FOR": FOR,
+            "PLR": PLR,
+            "NLR": NLR,
+            "PT": PT,
+            "TS": TS,
+            "PRE": PRE,
+            "ACC": ACC,
+            "BA": BA,
+            "F1": F1,
+            "MCC": MCC,
+            "FM": FM,
+            "BM": BM,
+            "MK": MK,
+            "DOR": DOR
+        }
+
+        # update general dictionary of metrics
+        for key in report_data:
+            if key != "label":
+                report_data[key].append(metrics_current_label[key])
+
+    # turn general dictionary of metrics into a dataframe
+    return pd.DataFrame(report_data)
