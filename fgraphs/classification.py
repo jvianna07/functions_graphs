@@ -145,3 +145,7 @@ def save(model: Model, history: History, model_path: str, history_path: str):
 
     with open(history_path, 'w') as f:
         json.dump(history.history, f)
+
+
+def wrapper_build():
+    pass

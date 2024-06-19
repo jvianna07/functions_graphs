@@ -11,3 +11,4 @@
 # ignore Big files, more than 50.0Mb
 datasets/
 models/
+tests/
