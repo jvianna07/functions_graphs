@@ -8,6 +8,10 @@
 */__pycache__/
 
 
+# ignore test jupyter notebooks
+doNotUpload.ipynb
+
+
 # ignore Big files, more than 50.0Mb
 datasets/
 models/

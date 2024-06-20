@@ -9,7 +9,8 @@ import matplotlib.pyplot as plt
 from keras_tuner import Hyperband # Add to requirements
 
 from tensorflow.keras.datasets import cifar10
-from tensorflow.keras.models import Sequential, Model, Input
+from tensorflow.keras import Model, Input
+from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Input, Conv2D, MaxPooling2D, Flatten, Dense
 from tensorflow.keras.saving import save_model
 from tensorflow.keras.optimizers import Adam
