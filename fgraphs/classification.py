@@ -9,11 +9,12 @@ import matplotlib.pyplot as plt
 from keras_tuner import Hyperband # Add to requirements
 
 from tensorflow.keras.datasets import cifar10
-from tensorflow.keras.models import Sequential, Model#, Input
+from tensorflow.keras.models import Sequential, Model, Input
 from tensorflow.keras.layers import Input, Conv2D, MaxPooling2D, Flatten, Dense
 from tensorflow.keras.saving import save_model
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.callbacks import EarlyStopping, History
+from tensorflow.keras.applications import ResNet50, EfficientNetB0, MobileNetV2
 
 
 def load_preprocess(preprocess_file: str) -> Dict[str, str]:
