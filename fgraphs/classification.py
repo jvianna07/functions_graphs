@@ -6,8 +6,10 @@ import json
 import numpy as np
 import matplotlib.pyplot as plt
 
+from keras_tuner import Hyperband # Add to requirements
+
 from tensorflow.keras.datasets import cifar10
-from tensorflow.keras.models import Sequential, Model
+from tensorflow.keras.models import Sequential, Model#, Input
 from tensorflow.keras.layers import Input, Conv2D, MaxPooling2D, Flatten, Dense
 from tensorflow.keras.saving import save_model
 from tensorflow.keras.optimizers import Adam
@@ -147,5 +149,76 @@ def save(model: Model, history: History, model_path: str, history_path: str):
         json.dump(history.history, f)
 
 
-def wrapper_build():
-    pass
+
+# Find best hyperparameters to build CNN model for function graph classification
+def build_cnn_model(hp, input_shape:tuple =(128, 128, 3),
+                    min_conv_layers=1, max_conv_layers=4,
+                    min_filters=4, max_filters=64, filter_step=4,
+                    min_dense_units=32, max_dense_units=256, dense_step=8):
+    
+    # Camada de input
+    inputs = Input(shape=input_shape)
+    x = inputs
+
+    # Conv2D layers interspersed with MaxPooling2D
+    for i in range(hp.Int("conv_layers", min_conv_layers, max_conv_layers, default=3)):
+        x = Conv2D (
+            filters=hp.Int("filters_" + str(i), min_filters, max_filters, step=filter_step, default=8),
+            kernel_size=3,  
+            activation="relu",
+            padding="same",
+        )(x)
+    # interspersed with MaxPooling2D layer
+        x = MaxPooling2D((2,2))(x)
+    
+    # End with conv2D layer
+    x = Conv2D (
+            filters=hp.Int("filters_" + str(i), min_filters, max_filters, step=filter_step, default=8),
+            kernel_size=3,  
+            activation="relu",
+            padding="same",
+        )(x)
+
+    # Flatten layer
+    x = Flatten()(x)
+
+    # Dense layer with neurons and activation functions variables
+    x = Dense(
+        units=hp.Int("dense_units", min_dense_units, max_dense_units, step=dense_step, default=128),
+        activation=hp.Choice("dense_activation", ["relu", "tanh", "sigmoid"])
+    )(x)
+
+    # Output layer
+    outputs = Dense(10, activation="softmax")(x)
+
+    # Model creation
+    model = Model(inputs, outputs)
+
+    # Compile model
+    model.compile(
+        optimizer = "adam",
+        loss="categorical_crossentropy", 
+        metrics=["accuracy"]
+    )
+    
+    return model
+
+
+# Search for the best CNN model
+def find_best_cnn_model(x_train: np.ndarray, y_train:np.ndarray,
+                        x_val:np.ndarray, y_val:np.ndarray,
+                        epochs=5):
+    
+    # Keras Tuner configuration
+    tuner = Hyperband(
+        hypermodel=build_cnn_model,
+        objective="val_accuracy",
+        max_epochs=3,
+        overwrite=True,
+    )
+
+    # Tuner adjustment
+    tuner.search(x_train, y_train,
+                 epochs=epochs, validation_data=(x_val, y_val))
+    
+    return tuner
