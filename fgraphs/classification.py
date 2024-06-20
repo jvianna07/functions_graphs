@@ -222,3 +222,4 @@ def find_best_cnn_model(x_train: np.ndarray, y_train:np.ndarray,
                  epochs=epochs, validation_data=(x_val, y_val))
     
     return tuner
+
