@@ -223,3 +223,42 @@ def find_best_cnn_model(x_train: np.ndarray, y_train:np.ndarray,
     
     return tuner
 
+
+
+# OTHER CONVNETS: ResNet50, EfficientNetB0, MobileNetV2
+def convNet_classification(convNet:str):
+    '''ConvNet (str)- Choose between:
+                     ResNet50, EfficientNetB0 or MobileNetV2'''
+
+    # Carregar o modelo ResNet50 sem a camada fully-connected (include_top=False)
+    if convNet == 'ResNet50':
+        base_model = ResNet50(weights='imagenet', include_top=False, input_shape=(128, 128, 3))
+    elif convNet == 'EfficientNetB0':
+        base_model = EfficientNetB0(weights='imagenet', include_top=False, input_shape=(128, 128, 3))
+    elif convNet == 'MobileNetV2':
+        base_model = MobileNetV2(weights='imagenet', include_top=False, input_shape=(128, 128, 3))
+    else:
+        raise ValueError (f"ConvNet '{convNet}' not found")
+    
+
+    # Adicionar camadas fully-connected personalizadas para classificação
+    x = base_model.output
+    x = Flatten()(x)
+    x = Dense(128, activation='relu')(x)
+    predictions = Dense(10, activation='softmax')(x)
+
+    # Definir modelo final
+    model = Model(inputs=base_model.input, outputs=predictions)
+
+    # Congelar camadas convolucionais do ResNet50
+    for layer in base_model.layers:
+        layer.trainable = False
+
+    # Compilar modelo
+    model.compile(
+        optimizer= 'Adam',
+        loss='categorical_crossentropy',
+        metrics=['accuracy'])
+    
+
+    return model
