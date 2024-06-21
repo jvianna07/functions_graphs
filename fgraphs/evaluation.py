@@ -254,3 +254,17 @@ def report(binary_cms: Dict[str, pd.DataFrame], labels: List[str]):
 
     # turn general dictionary of metrics into a dataframe
     return pd.DataFrame(report_data)
+
+
+
+# Show Best hyperparameters for function graphs problem
+def show_best_hps (tuner_hp):
+    best_hps_4_fgraphs = tuner_hp.get_best_hyperparameters(num_trials=1)[0]
+    print(f"""
+          
+    Best hyperparameters are:
+    - Nr of convolutional layers: {best_hps_4_fgraphs.get('conv_layers')}
+    - Filters in convolutional layers: {[best_hps_4_fgraphs.get('filters_' + str(i)) for i in range(best_hps_4_fgraphs.get('conv_layers'))]}
+    - Nr of neurons in dense layer: {best_hps_4_fgraphs.get('dense_units')}
+    - Activation function in dense layer: {best_hps_4_fgraphs.get('dense_activation')}
+    """) 
