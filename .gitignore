@@ -16,3 +16,4 @@ doNotUpload.ipynb
 datasets/
 models/
 tests/
+env/
